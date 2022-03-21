@@ -83,3 +83,11 @@
           (logger/error "No cache DB file found"))))
     (catch Throwable e
       (logger/error "Could not load project cache from DB" e))))
+
+(comment
+  (->> @db
+       :analysis
+       (mapcat val)
+       (group-by :bucket)
+       keys
+       ))

@@ -89,6 +89,16 @@
                 :name-end-row (or (:name-end-row element) (:end-row element))
                 :name-end-col (or (:name-end-col element) (:end-col element))))]
 
+    (contains? #{:java-class-definitions :java-class-usages} bucket)
+    (do
+      (logger/debug "--->" element)
+      [(-> element
+           (assoc :filename (shared/uri->filename (:uri element))
+                  :name-row 0
+                  :name-col 0
+                  :name-end-row 0
+                  :name-end-col 0))])
+
     :else
     [element]))
 
@@ -181,8 +191,10 @@
                                     :keywords true
                                     :protocol-impls true}
                          :canonical-paths true}}}
-      (shared/assoc-some :custom-lint-fn (when-not external-analysis-only?
-                                           (partial project-custom-lint! paths db)))
+      (shared/assoc-in-some [:custom-lint-fn] (when-not external-analysis-only?
+                                                (partial project-custom-lint! paths db)))
+      (shared/assoc-in-some [:config :output :analysis :java-class-definitions] (not external-analysis-only?))
+      (shared/assoc-in-some [:config :output :analysis :java-class-usages] (not external-analysis-only?))
       (with-additional-config (settings/all db))))
 
 (defn kondo-for-reference-filenames [filenames db]
@@ -201,6 +213,8 @@
                                     :locals true
                                     :keywords true
                                     :protocol-impls true
+                                    :java-class-definitions true
+                                    :java-class-usages true
                                     :context [:clojure.test
                                               :re-frame.core]}
                          :canonical-paths true}}}
